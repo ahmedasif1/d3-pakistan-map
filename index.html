@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+ <html lang="en-US">
+    <body>
+        <h1>Pakistan map using D3.js</h1>
+        <div>
+            <div id="mapPlaceHolder"></div>
+        </div>
+    </body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/6.6.2/d3.min.js" integrity="sha512-L2eTGYYQqzK5YozYyUVrJKj2ZRnHE3QzV1+1yY6VXHExStF3potRZyEcD/B6sTOe04xYxB21QNLmVTQFcgwovg==" crossorigin="anonymous"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js" integrity="sha512-4UKI/XKm3xrvJ6pZS5oTRvIQGIzZFoXR71rRBb1y2N+PbwAsKa5tPl2J6WvbEvwN3TxQCm8hMzsl/pO+82iRlg==" crossorigin="anonymous"></script>
+    <script>
+        var  WIDTH = 800;
+        var HEIGHT = 700;
+        console.log('Set WIDTH and HEIGHT')
+        console.log(d3);
+        d3.json('https://raw.githubusercontent.com/deldersveld/topojson/master/countries/pakistan/pakistan-divisions.json').then(data => {
+          console.log(data);
+          drawMap(data);
+        });
+        function drawMap(topojsonData){
+          console.log('inside drawMap')
+          // create svg in DOM
+          var svg = d3.select("#mapPlaceHolder").html('').selectAll('svg').data([0]).enter().append('svg').attr('width', WIDTH).attr('height', HEIGHT);
+          
+          // extract provinces data from the fetched json data
+          var divisionsData = topojson.feature(topojsonData, topojsonData.objects.PAK_adm2).features;
+          var provinces = [...new Set(divisionsData.map( x => x.properties.NAME_1))];
+          
+          // create a mapping of province name ot color using scaleOrdinal
+          // scaleOrdinal is discrete to discrete scale
+          // d3.schemeSet1 is a builtin d3 color scheme
+          var colorMap = d3.scaleOrdinal().domain(provinces).range(d3.schemeSet1);
+          // create the map by setting the path
+          // we are passing provinces to selectAll
+          // this will create a separate <path> for each entry in provinces array
+          svg.selectAll('g').data([0]).join(enter => enter.append('g')).style('transform', 'translate(-2600px,1600px) scale(43) scaleY(-1)')
+            .selectAll('path')
+            .data(divisionsData)
+            .join(enter => enter.append('path'))
+            .attr('d', d3.geoPath())
+            .style('fill', data => colorMap(data.properties.NAME_1));
+        }
+    </script>
+</html>
